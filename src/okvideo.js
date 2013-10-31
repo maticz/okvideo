@@ -28,12 +28,19 @@ var player, OKEvents, options;
       // support older versions of okvideo
       if (base.options.video === null) base.options.video = base.options.source; 
 
+      var width = '100%', height = '100%';
+      if (base.options.crop) {
+        var size = base.getSize();
+        width = size.width.toString() + 'px';
+        height = size.height.toString() + 'px';
+      }
+
       if (OKEvents.utils.isMobile()) {
         $('body').append('<div id="okplayer" style="position:fixed;left:0;top:0;overflow:hidden;z-index:-999;height:100%;width:100%;"></div>');
       } else if (base.options.adproof) {
         $('body').append('<div style="position:fixed;left:0;top:0;overflow:hidden;z-index:-998;height:100%;width:100%;" id="okplayer-mask"></div><div id="okplayer" style="position:fixed;left:0;top:0;overflow:hidden;z-index:-999;height:110%;width:110%;"></div>');
       } else {
-        $('body').append('<div style="position:fixed;left:0;top:0;overflow:hidden;z-index:-998;height:100%;width:100%;" id="okplayer-mask"></div><div id="okplayer" style="position:fixed;left:0;top:0;overflow:hidden;z-index:-999;height:100%;width:100%;"></div>');
+        $('body').append('<div style="position:fixed;left:0;top:0;overflow:hidden;z-index:-998;height:100%;width:100%;" id="okplayer-mask"></div><div id="okplayer" style="position:fixed;left:0;top:0;overflow:hidden;z-index:-999;height:' + height  + ';width:' + width + ';"></div>');
       }
 
       $("#okplayer-mask").css("background-image", "url(" + BLANK_GIF + ")");
@@ -50,6 +57,15 @@ var player, OKEvents, options;
         }
       } else {
         base.loadYouTubeAPI();
+      }
+
+      if (base.options.crop === 1) {
+        $(window).resize(function (e) {
+            var size = base.getSize();
+            var iframe = $('iframe#okplayer');
+            iframe.width(size.width);
+            iframe.height(size.height);
+        });
       }
     };
 
@@ -139,6 +155,25 @@ var player, OKEvents, options;
       }
     };
 
+    base.getSize = function () {
+      var ratio = base.getRatio(),
+          width = $(window).width(),
+          height = $(window).height(),
+          screenRatio = width / height;
+
+      if (screenRatio > ratio) {
+          height = width / ratio;
+      } else {
+          width = height * ratio;
+      }
+
+      return {width: width, height: height};
+    };
+
+    base.getRatio = function () {
+        return 16 / 9;
+    };
+
     base.init();
   };
 
@@ -156,6 +191,7 @@ var player, OKEvents, options;
     loop: 1,
     hd: 1,
     volume: 0,
+    crop: false,
     adproof: false,
     unstarted: null,
     onFinished: null,
